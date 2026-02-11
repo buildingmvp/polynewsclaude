@@ -5,7 +5,7 @@ import {
   parseISO,
 } from "date-fns";
 import type { MarketCategory, PriceHistoryPoint } from "./types";
-import { CATEGORY_MAP } from "./constants";
+import { CATEGORY_KEYWORDS } from "./constants";
 
 /**
  * Format a date string as a human-readable relative time + absolute date.
@@ -53,26 +53,45 @@ export function safeJsonParse<T>(jsonString: string, fallback: T): T {
 }
 
 /**
- * Normalize a Polymarket category/tag string to our category enum.
+ * Check if a text contains any keyword from CATEGORY_KEYWORDS for a given category.
+ */
+function matchKeyword(text: string): MarketCategory | null {
+  const lower = text.toLowerCase();
+  for (const { keyword, category } of CATEGORY_KEYWORDS) {
+    if (lower.includes(keyword)) {
+      return category;
+    }
+  }
+  return null;
+}
+
+/**
+ * Normalize a Polymarket market to our category enum.
+ * Matches against category field, tag slugs, and the question text itself.
  */
 export function normalizeCategory(
   rawCategory: string,
-  tags?: Array<{ slug: string }>
+  tags?: Array<{ slug: string }>,
+  question?: string
 ): MarketCategory {
-  // Check the category field first
-  const lower = rawCategory?.toLowerCase().trim() ?? "";
-  if (CATEGORY_MAP[lower]) {
-    return CATEGORY_MAP[lower];
+  // Check the category field
+  if (rawCategory) {
+    const match = matchKeyword(rawCategory);
+    if (match) return match;
   }
 
   // Check tags
   if (tags) {
     for (const tag of tags) {
-      const tagLower = tag.slug.toLowerCase().trim();
-      if (CATEGORY_MAP[tagLower]) {
-        return CATEGORY_MAP[tagLower];
-      }
+      const match = matchKeyword(tag.slug);
+      if (match) return match;
     }
+  }
+
+  // Check the question text itself as a last resort
+  if (question) {
+    const match = matchKeyword(question);
+    if (match) return match;
   }
 
   return "other";

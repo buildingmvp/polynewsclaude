@@ -250,7 +250,8 @@ async function processMarket(raw: GammaMarket): Promise<ResolvedMarket> {
     closedTime,
     category: normalizeCategory(
       raw.category ?? "",
-      raw.tags
+      raw.tags,
+      raw.question
     ),
     volume: parseFloat(raw.volume) || 0,
     predictionBeforeClose,
@@ -258,23 +259,48 @@ async function processMarket(raw: GammaMarket): Promise<ResolvedMarket> {
 }
 
 /**
+ * Lightweight categorization of a raw market (no API calls needed).
+ */
+function categorizeRawMarket(raw: GammaMarket): MarketCategory {
+  return normalizeCategory(raw.category ?? "", raw.tags, raw.question);
+}
+
+/**
  * Main entry point: fetch and process a page of resolved markets.
+ *
+ * Strategy: When filtering by category, we fetch a large batch of raw markets,
+ * do lightweight categorization first (no API calls), filter to the target
+ * category, then only do the expensive price-history processing on the
+ * filtered subset.
  */
 export async function getResolvedMarkets(
   limit: number,
   offset: number,
   category?: string
 ): Promise<MarketsApiResponse> {
-  // Fetch more than needed if filtering by category (server-side filtering)
-  const fetchLimit = category && category !== "all" ? limit * 3 : limit;
+  const needsFiltering = category && category !== "all";
+
+  // Fetch a large batch when filtering — we need enough raw markets to
+  // fill the requested limit after category filtering
+  const fetchLimit = needsFiltering ? Math.max(limit * 6, 200) : limit;
   const rawMarkets = await fetchResolvedMarkets(fetchLimit, offset);
 
-  // Process markets in batches to respect rate limits
+  // Step 1: Lightweight categorization + filter (no API calls)
+  let toProcess = rawMarkets;
+  if (needsFiltering) {
+    toProcess = rawMarkets.filter(
+      (raw) => categorizeRawMarket(raw) === (category as MarketCategory)
+    );
+    // Trim to limit before expensive processing
+    toProcess = toProcess.slice(0, limit);
+  }
+
+  // Step 2: Process only the markets we'll actually show (expensive — price history calls)
   const batchSize = 5;
   const processed: ResolvedMarket[] = [];
 
-  for (let i = 0; i < rawMarkets.length; i += batchSize) {
-    const batch = rawMarkets.slice(i, i + batchSize);
+  for (let i = 0; i < toProcess.length; i += batchSize) {
+    const batch = toProcess.slice(i, i + batchSize);
     const results = await Promise.allSettled(
       batch.map((market) => processMarket(market))
     );
@@ -286,31 +312,28 @@ export async function getResolvedMarkets(
     }
 
     // Small delay between batches
-    if (i + batchSize < rawMarkets.length) {
+    if (i + batchSize < toProcess.length) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
 
-  // Filter by category if specified
-  let filtered = processed;
-  if (category && category !== "all") {
-    filtered = processed.filter(
-      (m) => m.category === (category as MarketCategory)
-    );
-  }
-
   // Sort by closedTime descending
-  filtered.sort(
+  processed.sort(
     (a, b) =>
       new Date(b.closedTime).getTime() - new Date(a.closedTime).getTime()
   );
 
   // Trim to requested limit
-  const markets = filtered.slice(0, limit);
+  const markets = processed.slice(0, limit);
+
+  // Calculate next offset based on how many raw markets we consumed
+  const hasMore = needsFiltering
+    ? rawMarkets.length === fetchLimit // there may be more raw markets
+    : markets.length === limit;
 
   return {
     markets,
-    nextOffset: markets.length === limit ? offset + limit : null,
+    nextOffset: hasMore ? offset + fetchLimit : null,
     total: markets.length,
   };
 }

@@ -16,7 +16,7 @@ export const mockResolvedMarket: ResolvedMarket = {
     probability: 0.73,
     wasCorrect: true,
     dataAvailable: true,
-    hoursBeforeClose: 1.2,
+    hoursBeforeClose: 11.8,
   },
 };
 
@@ -36,7 +36,7 @@ export const mockIncorrectMarket: ResolvedMarket = {
     probability: 0.65,
     wasCorrect: false,
     dataAvailable: true,
-    hoursBeforeClose: 0.9,
+    hoursBeforeClose: 12.3,
   },
 };
 
@@ -78,9 +78,9 @@ export const mockGammaMarket: GammaMarket = {
 };
 
 export const mockPriceHistory: PriceHistoryPoint[] = [
-  { t: 1735689599 - 7200, p: "0.68" },
-  { t: 1735689599 - 3600, p: "0.73" },
-  { t: 1735689599 - 1800, p: "0.78" },
+  { t: 1735689599 - 86400, p: "0.55" },
+  { t: 1735689599 - 43200, p: "0.73" },
+  { t: 1735689599 - 3600, p: "0.78" },
   { t: 1735689599 - 600, p: "0.85" },
 ];
 

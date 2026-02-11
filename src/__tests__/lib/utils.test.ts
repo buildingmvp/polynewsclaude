@@ -50,8 +50,8 @@ describe("normalizeCategory", () => {
     expect(normalizeCategory("crypto")).toBe("economics");
   });
 
-  it("maps ai to tech", () => {
-    expect(normalizeCategory("ai")).toBe("tech");
+  it("maps technology to tech (substring match)", () => {
+    expect(normalizeCategory("technology")).toBe("tech");
   });
 
   it("maps sports to sports", () => {
@@ -68,8 +68,24 @@ describe("normalizeCategory", () => {
     ).toBe("sports");
   });
 
-  it("handles null/undefined category", () => {
+  it("handles empty category", () => {
     expect(normalizeCategory("")).toBe("other");
+  });
+
+  it("matches from question text as fallback", () => {
+    expect(
+      normalizeCategory("", undefined, "Will Bitcoin reach $100,000?")
+    ).toBe("economics");
+  });
+
+  it("matches partial keywords via substring", () => {
+    expect(normalizeCategory("us-elections")).toBe("politics");
+  });
+
+  it("matches geopolitics keywords from question", () => {
+    expect(
+      normalizeCategory("", undefined, "Will Ukraine join NATO by 2030?")
+    ).toBe("geopolitics");
   });
 });
 
