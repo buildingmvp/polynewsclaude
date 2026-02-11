@@ -61,9 +61,9 @@ async function fetchPriceHistory(
     new Date(closedTimeISO).getTime() / 1000
   );
 
-  // Primary attempt: narrow window around close time with fine fidelity
+  // Primary attempt: 24hr window around close time with 12hr-friendly fidelity
   try {
-    const startTs = closedTimestamp - 7200; // 2 hours before
+    const startTs = closedTimestamp - 86400; // 24 hours before
     const endTs = closedTimestamp;
     const params = new URLSearchParams({
       market: tokenId,
@@ -87,9 +87,9 @@ async function fetchPriceHistory(
     // Fall through to fallback
   }
 
-  // Fallback: wider window with 1-hour fidelity
+  // Fallback: wider window with coarser fidelity
   try {
-    const startTs = closedTimestamp - 86400; // 24 hours before
+    const startTs = closedTimestamp - 172800; // 48 hours before
     const endTs = closedTimestamp;
     const params = new URLSearchParams({
       market: tokenId,
@@ -165,7 +165,7 @@ async function processMarket(raw: GammaMarket): Promise<ResolvedMarket> {
       const closedTimestamp = Math.floor(
         new Date(closedTime).getTime() / 1000
       );
-      const targetTimestamp = closedTimestamp - 3600; // 1 hour before
+      const targetTimestamp = closedTimestamp - 43200; // 12 hours before
 
       // For binary markets, the first token is typically "Yes"
       const yesTokenId = clobTokenIds[0];

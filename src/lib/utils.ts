@@ -146,9 +146,10 @@ export function findClosestPricePoint(
  * e.g. 1.2 → "1h before", 12.5 → "~12h before"
  */
 export function formatHoursBefore(hours: number): string {
-  if (hours < 2) return "1h before";
-  if (hours < 6) return `~${Math.round(hours)}h before`;
-  if (hours < 18) return "~12h before";
+  if (hours < 1) return "<1h before";
+  if (hours < 9) return `~${Math.round(hours)}h before`;
+  if (hours < 15) return "12h before";
+  if (hours < 36) return `~${Math.round(hours)}h before`;
   return `~${Math.round(hours / 24)}d before`;
 }
 

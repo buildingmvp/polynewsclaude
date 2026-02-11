@@ -130,16 +130,20 @@ describe("findClosestPricePoint", () => {
 });
 
 describe("formatHoursBefore", () => {
-  it("formats 1h correctly", () => {
-    expect(formatHoursBefore(0.8)).toBe("1h before");
+  it("formats <1h correctly", () => {
+    expect(formatHoursBefore(0.5)).toBe("<1h before");
   });
 
   it("formats ~3h correctly", () => {
     expect(formatHoursBefore(3)).toBe("~3h before");
   });
 
-  it("formats ~12h correctly", () => {
-    expect(formatHoursBefore(12)).toBe("~12h before");
+  it("formats 12h correctly", () => {
+    expect(formatHoursBefore(12)).toBe("12h before");
+  });
+
+  it("formats ~20h correctly", () => {
+    expect(formatHoursBefore(20)).toBe("~20h before");
   });
 
   it("formats days correctly", () => {

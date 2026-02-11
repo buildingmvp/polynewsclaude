@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { MarketsApiResponse } from "@/lib/types";
 import { useMarkets } from "@/hooks/useMarkets";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
@@ -15,6 +15,7 @@ interface MarketFeedProps {
 
 export default function MarketFeed({ initialData }: MarketFeedProps) {
   const [category, setCategory] = useState("all");
+  const feedTopRef = useRef<HTMLDivElement>(null);
   const { ref: sentinelRef, isIntersecting } = useIntersectionObserver();
 
   const {
@@ -34,20 +35,27 @@ export default function MarketFeed({ initialData }: MarketFeedProps) {
     }
   }, [isIntersecting, isLoadingMore, isReachingEnd, isValidating, loadMore]);
 
-  const handleCategoryChange = (newCategory: string) => {
+  const handleCategoryChange = useCallback((newCategory: string) => {
     setCategory(newCategory);
-  };
+    // Scroll to top of feed when category changes
+    feedTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Category filter bar */}
-      <CategoryFilter
-        selectedCategory={category}
-        onCategoryChange={handleCategoryChange}
-      />
+    <div>
+      {/* Scroll target for category changes */}
+      <div ref={feedTopRef} className="-mt-[120px] pt-[120px]" />
+
+      {/* Sticky category filter bar */}
+      <div className="sticky top-[49px] z-40 -mx-4 px-4 py-3 sticky-categories">
+        <CategoryFilter
+          selectedCategory={category}
+          onCategoryChange={handleCategoryChange}
+        />
+      </div>
 
       {/* Market feed */}
-      <div className="space-y-3">
+      <div className="space-y-2.5 mt-4">
         {/* Error state */}
         {error && !isLoading && (
           <ErrorState
@@ -61,7 +69,7 @@ export default function MarketFeed({ initialData }: MarketFeedProps) {
           <div
             key={market.id}
             className="animate-fade-in opacity-0"
-            style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
+            style={{ animationDelay: `${Math.min(index * 0.025, 0.25)}s` }}
           >
             <MarketCard market={market} />
           </div>
@@ -69,8 +77,8 @@ export default function MarketFeed({ initialData }: MarketFeedProps) {
 
         {/* Loading skeletons */}
         {(isLoading || isLoadingMore) && (
-          <div className="space-y-3">
-            {Array.from({ length: isLoading ? 8 : 3 }).map((_, i) => (
+          <div className="space-y-2.5">
+            {Array.from({ length: isLoading ? 10 : 4 }).map((_, i) => (
               <LoadingCard key={`loading-${i}`} />
             ))}
           </div>
@@ -79,10 +87,10 @@ export default function MarketFeed({ initialData }: MarketFeedProps) {
         {/* Empty state */}
         {!isLoading && !error && markets.length === 0 && (
           <div className="glass-card p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
               <svg
-                width="24"
-                height="24"
+                width="22"
+                height="22"
                 viewBox="0 0 24 24"
                 fill="none"
                 className="text-poly-text-tertiary"
@@ -99,7 +107,7 @@ export default function MarketFeed({ initialData }: MarketFeedProps) {
               No resolved markets found for this category.
             </p>
             <p className="text-poly-text-tertiary text-xs mt-1">
-              Try selecting a different category or check back later.
+              Try a different category or check back later.
             </p>
           </div>
         )}
@@ -107,7 +115,7 @@ export default function MarketFeed({ initialData }: MarketFeedProps) {
         {/* End of feed */}
         {isReachingEnd && markets.length > 0 && (
           <p className="text-center text-poly-text-tertiary text-xs py-8">
-            You&apos;ve reached the end of resolved markets.
+            End of resolved markets
           </p>
         )}
 

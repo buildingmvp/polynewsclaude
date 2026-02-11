@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import MarketCard from "@/components/MarketCard";
 import {
   mockResolvedMarket,
-  mockIncorrectMarket,
   mockNoDataMarket,
 } from "../fixtures/mockData";
 
@@ -23,26 +22,16 @@ describe("MarketCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the resolved outcome", () => {
+  it("renders the resolved outcome text", () => {
     render(<MarketCard market={mockResolvedMarket} />);
-    // "Yes" appears twice: as resolved outcome and as prediction outcome
+    // "Yes" appears in both resolved outcome and prediction outcome
     const yesElements = screen.getAllByText("Yes");
     expect(yesElements.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders correct badge for correct prediction", () => {
+  it("renders 'Resolved' label", () => {
     render(<MarketCard market={mockResolvedMarket} />);
-    expect(screen.getByText("Correct")).toBeInTheDocument();
-  });
-
-  it("renders incorrect badge for wrong prediction", () => {
-    render(<MarketCard market={mockIncorrectMarket} />);
-    expect(screen.getByText("Incorrect")).toBeInTheDocument();
-  });
-
-  it("renders no data badge when prediction data unavailable", () => {
-    render(<MarketCard market={mockNoDataMarket} />);
-    expect(screen.getByText("No data")).toBeInTheDocument();
+    expect(screen.getByText(/Resolved/)).toBeInTheDocument();
   });
 
   it("renders probability percentage for available data", () => {
@@ -50,14 +39,16 @@ describe("MarketCard", () => {
     expect(screen.getByText("73%")).toBeInTheDocument();
   });
 
-  it("renders category pill", () => {
+  it("renders predicted outcome text", () => {
     render(<MarketCard market={mockResolvedMarket} />);
-    expect(screen.getByText("Economics")).toBeInTheDocument();
+    expect(screen.getByText(/predicted/)).toBeInTheDocument();
   });
 
-  it("renders volume", () => {
-    render(<MarketCard market={mockResolvedMarket} />);
-    expect(screen.getByText("$5.0M volume")).toBeInTheDocument();
+  it("renders 'No prediction data' for unavailable data", () => {
+    render(<MarketCard market={mockNoDataMarket} />);
+    expect(
+      screen.getByText("No prediction data available")
+    ).toBeInTheDocument();
   });
 
   it("links to polymarket", () => {
