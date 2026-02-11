@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PolyNews
 
-## Getting Started
+A glassmorphism-styled news feed that shows recently resolved Polymarket prediction markets. See what the markets predicted, whether they were right, and browse by category.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/buildingmvp/polynewsclaude)
 
-## Learn More
+Or manually:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm i -g vercel
+vercel
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+No environment variables are required — the Polymarket APIs are public.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+- **Resolved Markets Feed** — Browse markets that have just resolved, sorted newest-first
+- **Prediction Accuracy** — See if the market's prediction (1hr before close) matched the actual outcome
+- **Category Filtering** — Filter by Politics, Economics, Culture, Tech, Geopolitics, Sports, or Other
+- **Infinite Scroll** — Seamlessly loads more markets as you scroll
+- **Glassmorphism Design** — Frosted glass cards with Polymarket's color palette
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: Next.js 16 (App Router, TypeScript)
+- **Styling**: Tailwind CSS v4 with CSS-first configuration
+- **Data Fetching**: SWR Infinite (client), server-side fetch with caching
+- **APIs**: Polymarket Gamma API + CLOB API (no auth required)
+- **Testing**: Jest + React Testing Library (46 tests)
+
+## Architecture
+
+```
+src/
+  app/              # Next.js App Router pages and API routes
+    api/markets/    # Proxy to Polymarket Gamma + CLOB APIs
+    api/prices/     # Price history proxy (for future use)
+  components/       # React components (glass cards, badges, feed)
+  hooks/            # SWR hooks, intersection observer
+  lib/              # Types, constants, utilities, API client
+  __tests__/        # Test suite
+```
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm test` | Run test suite |
+| `npm run lint` | Run ESLint |
